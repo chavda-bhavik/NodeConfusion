@@ -65,4 +65,63 @@ router.delete('/:dishId', async (req,res) => {
     }
 });
 
+router.get("/:dishId/comments", async (req,res) => {
+    try {
+        let Dish = await Dishes.findById(req.params.dishId);
+        if(!Dish) {
+            return res.status(404).send({ "error": "Dish Not Found" })
+        }
+        res.status(200).send(Dish.comments);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+})
+router.post('/:dishId/comments', async (req,res) => {
+    try {
+        let Dish = await Dishes.findById(req.params.dishId);
+        if(!Dish) {
+            return res.status(404).send({ "error": "Dish Not Found" })
+        }
+        Dish.comments.push({
+            ...req.body
+        })
+        await Dish.save();
+        res.status(200).send(Dish.comments);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+})
+router.put('/:dishId/comments/:commentId', async (req,res) => {
+    try {
+        let Dish = await Dishes.findById(req.params.dishId);
+        if(!Dish) {
+            return res.status(404).send({ "error": "Dish Not Found" })
+        }
+        Dish.comments = Dish.comments.map( comment => {
+            if(comment._id == req.params.commentId) {
+                comment.rating = req.body.rating;
+                comment.comment = req.body.comment;
+            }
+            return comment;
+        })
+        await Dish.save();
+        res.status(200).send(Dish.comments);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+})
+router.delete('/:dishId/comments/:commentId', async (req,res) => {
+    try {
+        let Dish = await Dishes.findById(req.params.dishId);
+        if(!Dish) {
+            return res.status(404).send({ "error": "Dish Not Found" })
+        }
+        Dish.comments = Dish.comments.filter( comment => comment._id != req.params.commentId);
+        await Dish.save();
+        res.status(200).send(Dish.comments);
+    } catch (error) {
+        res.status(400).send(error);    
+    }
+});
+
 module.exports = router;

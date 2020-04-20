@@ -1,37 +1,77 @@
 const express = require("express");
 const router = express.Router();
+const Promotion = require('./../models/Promotion');
 
-router.all((req,res,next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    next();
+// router.all(async (req,res,next) => {
+//     res.statusCode = 200;
+//     res.setHeader('Content-Type', 'text/plain');
+//     next();
+// })
+router.get("", async (req,res) => {
+    try {
+        let promotions = await Promotion.find({});
+        res.status(200).send(promotions);
+    } catch (error) {
+        res.status(400).send(error);
+    }
 })
-router.get("", (req,res,next) => {
-    res.end('Will send all the promotions to you!');
+router.post("", async (req, res) => {
+    try {
+        let promo = new Promotion({
+            ...req.body
+        });
+        await promo.save();
+        res.status(200).send(promo);
+    } catch (error) {
+        res.status(400).send(error);
+    }
 })
-router.post("", (req, res, next) => {
-    res.end('Will add the promotion: ' + req.body.name + ' with details: ' + req.body.description);
-})
-router.put("", (req, res, next) => {
-    res.statusCode = 403;
-    res.end('PUT operation not supported on /promotions');
-})
-router.delete("", (req, res, next) => {
-    res.end('Deleting all promotions');
-})
+// router.put("", async (req, res, next) => {
+//     res.statusCode = 403;
+//     res.end('PUT operation not supported on /promotions');
+// })
+// router.delete("", async (req, res, next) => {
+//     res.end('Deleting all promotions');
+// })
 
-router.get("/:promotionId", (req,res) => {
-    res.end('Will send promotione of id '+req.params.promotionId);
+router.get("/:promotionId", async (req,res) => {
+    try {
+        let promo = await Promotion.findById(req.params.promotionId);
+        if(!promo) {
+            return res.status(404).send({ error: "Promotion Not Found!"})
+        }
+        res.status(200).send(promo);
+    } catch (error) {
+        res.status(400).send(error);
+    }
 })
-router.post('/:promotionId', (req,res) => {
-    res.statusCode = 403;
-    res.end("Post is not supported with "+req.params.promotionId);
+// router.post('/:promotionId', async (req,res) => {
+//     res.statusCode = 403;
+//     res.end("Post is not supported with "+req.params.promotionId);
+// })
+router.put('/:promotionId', async (req,res) => {
+    try {
+        let promo = await Promotion.findByIdAndUpdate(req.params.promotionId, {
+            $set: req.body
+        });
+        if(!promo) {
+            return res.status(404).send({ error: "Promotion Not Found!"})
+        }
+        res.status(200).send(promo);
+    } catch (error) {
+        res.status(400).send(error);
+    }
 })
-router.put('/:promotionId', (req,res) => {
-    res.end('promotion Updated with Id '+req.params.promotionId);
-})
-router.delete('/:promotionId', (req,res) => {
-    res.end('Deleted promotion with Id '+req.params.promotionId);
+router.delete('/:promotionId', async (req,res) => {
+    try {
+        let promo = await Promotion.findByIdAndRemove(req.params.promotionId);
+        if(!promo) {
+            return res.status(404).send({ error: "Promotion Not Found!"})
+        }
+        res.status(200).send(promo);
+    } catch (error) {
+        res.status(400).send(error);
+    }
 });
 
 module.exports = router;
