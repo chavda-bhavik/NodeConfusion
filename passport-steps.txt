@@ -1,0 +1,63 @@
+1) npm i passport passport-local passport-local-mongoose --save
+2) Inside UserSchema remove username & password as they are added by passport and add plugin to schema by:
+    UserSchema.plugin(passportLocalMongoose);
+3) create new file named authenticate.js and wrtite authentication for UserModel
+    var passport = require('passport');
+    var LocalSrategy = require('passport-local').Strategy;
+    var User = require('./models/User');
+
+    exports.local = passport.use(new LocalSrategy(User.authenticate()));
+    passport.serializeUser(User.serializeUser());
+    passport.deserializeUser(User.deserializeUser());
+4) here i assume that we are doing user related stuff like register, login in router so import passport in router like,
+    var passportLocalMongoose = require('passport-local-mongoose');
+5) To Signup user you can write like this inside signup post route:
+    User.register(new User({ username: req.body.username }), req.body.password, (err, user) => {
+        if(err) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.json({ err: err });
+            return
+        }
+        passport.authenticate('local')(req, res, () => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json({ success: true, status: 'Signed up sucessfully' })
+        })
+    })
+6) To login user, passport.authenticate('local') handles all the things, so you can write like this:
+    router.post('/login', passport.authenticate('local'), (req,res) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json({ success: true, status: 'Login   Successful!' })
+    })
+7) to logout user simple clear session and cookies as below:
+    req.session.destroy();
+    res.clearCookie('session-id');
+    res.redirect('/');
+8) Passport uses session so that it's required that you initialize session with some session store like file store in app.js as below:
+    var session = require("express-session");
+    var fileStore = require("session-file-store")(session);
+    app.use(session({
+        name: 'session-id',
+        secret: 'signed-key',
+        saveUninitialized: false,
+        resave: false,
+        store: new fileStore()
+    }));
+9) import passport to the app.js, as passport middleware is going to handle login user and adding user to req object.
+    const passport = require('passport');
+    app.use(passport.initialize());
+    app.use(passport.session());
+10) create one middleware that check if user is present in req (added by passport) only than proceed further:
+    const passportAuth = (req, res, next) => {
+        if(!req.user) {
+            var err = new Error('You are not authenticated!');
+            err.status = 401;
+            next(err);
+        } else {
+            next();
+        }
+    }
+11) add passportAuth middleware to the app for user, be sure to add after basic routes like indexroute and userRouter:
+    app.use(passportAuth);
