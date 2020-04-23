@@ -7,6 +7,7 @@ var mongoose = require('mongoose');
 var session = require("express-session");
 var fileStore = require("session-file-store")(session);
 var authenticate = require('./authenticate');
+var config = require('./config');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -16,7 +17,7 @@ var promotionRouter = require('./routes/PromotionRouter');
 const passport = require('passport');
 
 // const Dishes = require('../node-mongoose/models/dishes');
-const url = 'mongodb://localhost:27017/conFusion';
+const url = config.mongoUrl;
 
 try {
   mongoose.connect(url, {
@@ -39,17 +40,18 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 //app.use(cookieParser('signed-key'));
-app.use(session({
-  name: 'session-id',
-  secret: 'signed-key',
-  saveUninitialized: false,
-  resave: false,
-  store: new fileStore()
-}));
+// app.use(session({
+//   name: 'session-id',
+//   secret: 'signed-key',
+//   saveUninitialized: false,
+//   resave: false,
+//   store: new fileStore()
+// }));
 
 app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.session());
 
 const passportAuth = (req, res, next) => {
   if(!req.user) {
@@ -142,7 +144,7 @@ const basicAuth = (req,res,next) => {
 app.use('/', indexRouter);
 app.use('/users', usersRouter); 
 
-app.use(passportAuth);
+// app.use(passportAuth);
 app.use(express.static(path.join(__dirname, 'public')));
 
 

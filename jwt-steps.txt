@@ -1,0 +1,37 @@
+1) npm i passport-jwt jsonwebtoken --save
+2) create one config.js file that holds configuration of our website like below:
+    module.exports = {
+        'jwt-secret': 'bv-chavda',
+        'mongoUrl': 'mongodb://localhost:27017/conFusion',
+    }
+3) Go to the authenticate.js or create it, we will use passport and jwt combinely.
+    var JwtStrategy = require('passport-jwt').Strategy;
+    var ExtractJwt = require('passport-jwt').ExtractJwt;
+    var jwt = require('jsonwebtoken');
+    var config = require('./config');
+4) we will keep two methods inside authenticate.js file one for generating token and another for defining passport-jwt strategy to use.
+    a. generateToken
+    exports.generateToken = function(user) {
+        return jwt.sign(user, config["jwt-secret"], { expiresIn: 3600 }); // time need to be maximize
+    }
+    b. assign passport-jwt strategy
+    exports.jwtPassport = passport.use(new JwtStrategy(opts, async (jwt_payload, done) => {
+        console.log("JWT Payload: ", jwt_payload);
+        try {
+            let user = await User.findOne({ _id: jwt_payload._id });
+            if(user) 
+                return done(null, user, "Login Verified.");
+            done(null, false, "User not Found");
+        } catch (error) {
+            done(error, null, null);
+        }
+    }))
+
+5) Define method for verify the user token, as we are using token to verify user, there is no need for session
+    exports.verifyUser = passport.authenticate('jwt', { session: false })
+6) now methods for generating token, verifying token and assigning passport-jwt are created now use them.
+7) now go to the login router, as we are using passport we know that user will be always present in the req object. so that we can generate token with req.user object, and pass it to the response or to the cookie.
+    var token = authenticate.generateToken({_id: req.user._id })
+    res.send({ success: true, token, status: "login successfull" });
+8) 
+    

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Promotion = require('./../models/Promotion');
+const authenticate = require('../authenticate');
 
 // router.all(async (req,res,next) => {
 //     res.statusCode = 200;
@@ -15,7 +16,7 @@ router.get("", async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.post("", async (req, res) => {
+router.post("", authenticate.verifyUser, async (req, res) => {
     try {
         let promo = new Promotion({
             ...req.body
@@ -49,7 +50,7 @@ router.get("/:promotionId", async (req,res) => {
 //     res.statusCode = 403;
 //     res.end("Post is not supported with "+req.params.promotionId);
 // })
-router.put('/:promotionId', async (req,res) => {
+router.put('/:promotionId', authenticate.verifyUser, async (req,res) => {
     try {
         let promo = await Promotion.findByIdAndUpdate(req.params.promotionId, {
             $set: req.body
@@ -62,7 +63,7 @@ router.put('/:promotionId', async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.delete('/:promotionId', async (req,res) => {
+router.delete('/:promotionId', authenticate.verifyUser, async (req,res) => {
     try {
         let promo = await Promotion.findByIdAndRemove(req.params.promotionId);
         if(!promo) {

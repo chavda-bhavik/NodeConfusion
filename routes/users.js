@@ -2,6 +2,7 @@ var express = require('express');
 const User = require('./../models/User');
 var router = express.Router();
 var passport = require("passport");
+var authenticate = require('./../authenticate')
 
 /* GET users listing. */
 router.get('/', function(req, res) {
@@ -25,9 +26,11 @@ router.post('/signup', async (req,res) => {
 })
 
 router.post('/login', passport.authenticate('local'), (req,res) => {
+  var token = authenticate.generateToken({_id: req.user._id })
   res.statusCode = 200;
+  //res.cookie('authToken', 'bearer '+token);
   res.setHeader('Content-Type', 'application/json');
-  res.json({ success: true, status: 'Login   Successful!' })
+  res.json({ success: true, token, status: 'Login Successful!' })
 })
 
 router.get('/logout', (req,res) => {

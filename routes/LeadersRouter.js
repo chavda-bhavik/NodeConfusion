@@ -1,6 +1,7 @@
 const express = require("express");
 const LeaderShip = require("../models/Leader");
 const router = express.Router();
+const authenticate = require('../authenticate')
 
 // router.all(async (req,res,next) => {
 //     res.statusCode = 200;
@@ -15,7 +16,7 @@ router.get("", async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.post("", async (req, res) => {
+router.post("", authenticate.verifyUser, async (req, res) => {
     try {
         let Leader = new LeaderShip({
             ...req.body
@@ -49,7 +50,7 @@ router.get("/:leaderId", async (req,res) => {
 //     res.statusCode = 403;
 //     res.end("Post is not supported with "+req.params.promotionId);
 // })
-router.put('/:leaderId', async (req,res) => {
+router.put('/:leaderId', authenticate.verifyUser, async (req,res) => {
     try {
         let Leader = await LeaderShip.findByIdAndUpdate(req.params.leaderId, {
             $set: req.body
@@ -62,7 +63,7 @@ router.put('/:leaderId', async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.delete('/:leaderId', async (req,res) => {
+router.delete('/:leaderId', authenticate.verifyUser, async (req,res) => {
     try {
         let Leader = await LeaderShip.findByIdAndRemove(req.params.leaderId);
         if(!Leader) {
