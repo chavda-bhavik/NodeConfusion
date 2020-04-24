@@ -1,0 +1,9 @@
+1) mongoose population is a way to give reference to the document schema
+2) we need to specify type and ref as follow:
+    author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }
+3) we can get data by populating object while fetching i.e. dishes has comments schema and comments has author field that refers to User Model
+    Dishes.find({}).populate('comments.author')
+4) 

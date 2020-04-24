@@ -5,7 +5,7 @@ const authenticate = require('../authenticate');
 
 router.get("", async (req,res) => {
     try {
-        dishes = await Dishes.find({})
+        dishes = await Dishes.find({}).populate('comments.author')
         res.status(200).send(dishes);
     } catch (error) {
         res.status(400).send(error);
@@ -37,7 +37,7 @@ router.delete("", authenticate.verifyUser, async (req, res) => {
 
 router.get("/:dishId", async (req,res) => {
     try {
-        let Dish = await Dishes.findById(req.params.dishId);
+        let Dish = await Dishes.findById(req.params.dishId).populate('comments.author');
         res.status(200).send(Dish);
     } catch (error) {
         res.status(400).send(error);
@@ -68,7 +68,7 @@ router.delete('/:dishId', authenticate.verifyUser, async (req,res) => {
 
 router.get("/:dishId/comments", async (req,res) => {
     try {
-        let Dish = await Dishes.findById(req.params.dishId);
+        let Dish = await Dishes.findById(req.params.dishId).populate('comments.author');
         if(!Dish) {
             return res.status(404).send({ "error": "Dish Not Found" })
         }
@@ -83,10 +83,10 @@ router.post('/:dishId/comments', authenticate.verifyUser, async (req,res) => {
         if(!Dish) {
             return res.status(404).send({ "error": "Dish Not Found" })
         }
-        Dish.comments.push({
-            ...req.body
-        })
+        req.body.author = req.user._id
+        Dish.comments.push(req.body);
         await Dish.save();
+        await Dish.populate('comments.author');
         res.status(200).send(Dish.comments);
     } catch (error) {
         res.status(400).send(error);
@@ -106,6 +106,7 @@ router.put('/:dishId/comments/:commentId', authenticate.verifyUser, async (req,r
             return comment;
         })
         await Dish.save();
+        await Dish.populate('comments.author');
         res.status(200).send(Dish.comments);
     } catch (error) {
         res.status(400).send(error);
@@ -119,6 +120,7 @@ router.delete('/:dishId/comments/:commentId', authenticate.verifyUser, async (re
         }
         Dish.comments = Dish.comments.filter( comment => comment._id != req.params.commentId);
         await Dish.save();
+        await Dish.populate('comments.author');
         res.status(200).send(Dish.comments);
     } catch (error) {
         res.status(400).send(error);    

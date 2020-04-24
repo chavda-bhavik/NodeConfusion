@@ -14,10 +14,13 @@ passport.deserializeUser(User.deserializeUser());
 exports.generateToken = function(user) {
     return jwt.sign(user, config["jwt-secret"], { expiresIn: 3600 });
 }
-var opts = {};
-//opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.jwtFromRequest = ExtractJwt.
-opts.secretOrKey = config["jwt-secret"];
+var opts = {
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: config["jwt-secret"]
+};
+// opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+// opts.jwtFromRequest = ExtractJwt.
+// opts.secretOrKey = config["jwt-secret"];
 
 exports.jwtPassport = passport.use(new JwtStrategy(opts, async (jwt_payload, done) => {
     console.log("JWT Payload: ", jwt_payload);
