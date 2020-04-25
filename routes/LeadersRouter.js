@@ -16,7 +16,7 @@ router.get("", async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.post("", authenticate.verifyUser, async (req, res) => {
+router.post("", authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
     try {
         let Leader = new LeaderShip({
             ...req.body
@@ -27,13 +27,13 @@ router.post("", authenticate.verifyUser, async (req, res) => {
         res.status(400).send(error);
     }
 })
-// router.put("", async (req, res, next) => {
-//     res.statusCode = 403;
-//     res.end('PUT operation not supported on /promotions');
-// })
-// router.delete("", async (req, res, next) => {
-//     res.end('Deleting all promotions');
-// })
+router.put("", async (req, res, next) => {
+    res.statusCode = 403;
+    res.end('PUT operation not supported on /promotions');
+})
+router.delete("", async (req, res, next) => {
+    res.end('Deleting all promotions');
+})
 
 router.get("/:leaderId", async (req,res) => {
     try {
@@ -46,11 +46,11 @@ router.get("/:leaderId", async (req,res) => {
         res.status(400).send(error);
     }
 })
-// router.post('/:promotionId', async (req,res) => {
-//     res.statusCode = 403;
-//     res.end("Post is not supported with "+req.params.promotionId);
-// })
-router.put('/:leaderId', authenticate.verifyUser, async (req,res) => {
+router.post('/:promotionId', async (req,res) => {
+    res.statusCode = 403;
+    res.end("Post is not supported with "+req.params.promotionId);
+})
+router.put('/:leaderId', authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
     try {
         let Leader = await LeaderShip.findByIdAndUpdate(req.params.leaderId, {
             $set: req.body
@@ -63,7 +63,7 @@ router.put('/:leaderId', authenticate.verifyUser, async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.delete('/:leaderId', authenticate.verifyUser, async (req,res) => {
+router.delete('/:leaderId', authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
     try {
         let Leader = await LeaderShip.findByIdAndRemove(req.params.leaderId);
         if(!Leader) {

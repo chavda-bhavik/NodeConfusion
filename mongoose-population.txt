@@ -6,4 +6,5 @@
     }
 3) we can get data by populating object while fetching i.e. dishes has comments schema and comments has author field that refers to User Model
     Dishes.find({}).populate('comments.author')
-4) 
+4) while adding document just assign user key to the author as follow:
+    comment.author = req.user._id

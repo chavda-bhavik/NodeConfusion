@@ -16,7 +16,7 @@ router.get("", async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.post("", authenticate.verifyUser, async (req, res) => {
+router.post("", authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
     try {
         let promo = new Promotion({
             ...req.body
@@ -50,7 +50,7 @@ router.get("/:promotionId", async (req,res) => {
 //     res.statusCode = 403;
 //     res.end("Post is not supported with "+req.params.promotionId);
 // })
-router.put('/:promotionId', authenticate.verifyUser, async (req,res) => {
+router.put('/:promotionId', authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
     try {
         let promo = await Promotion.findByIdAndUpdate(req.params.promotionId, {
             $set: req.body
@@ -63,7 +63,7 @@ router.put('/:promotionId', authenticate.verifyUser, async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.delete('/:promotionId', authenticate.verifyUser, async (req,res) => {
+router.delete('/:promotionId', authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
     try {
         let promo = await Promotion.findByIdAndRemove(req.params.promotionId);
         if(!promo) {

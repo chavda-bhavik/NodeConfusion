@@ -5,8 +5,14 @@ var passport = require("passport");
 var authenticate = require('./../authenticate')
 
 /* GET users listing. */
-router.get('/', function(req, res) {
-  res.send('respond with a resource');
+router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
+  try {
+    let users = await User.find();
+    users = users.map( user => ({ firstname: user.firstname, lastname: user.lastname, admin: user.admin, username: user.username }));
+    res.status(200).send(users);
+  } catch (error) {
+    res.status(400).send(error);
+  }
 });
 
 router.post('/signup', async (req,res) => {

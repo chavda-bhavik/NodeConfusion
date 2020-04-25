@@ -21,9 +21,15 @@ var opts = {
 // opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 // opts.jwtFromRequest = ExtractJwt.
 // opts.secretOrKey = config["jwt-secret"];
-
+exports.verifyAdmin = (req, res, next) => {
+    if(req.user.admin) next();
+    else {
+        let notAdminError = new Error("This action is only applicable by admin.");
+        notAdminError.status = 403;
+        next(notAdminError);
+    }
+}
 exports.jwtPassport = passport.use(new JwtStrategy(opts, async (jwt_payload, done) => {
-    console.log("JWT Payload: ", jwt_payload);
     try {
         let user = await User.findOne({ _id: jwt_payload._id });
         if(user) 

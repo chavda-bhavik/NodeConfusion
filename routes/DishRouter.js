@@ -11,7 +11,7 @@ router.get("", async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.post("", authenticate.verifyUser, async (req, res) => {
+router.post("", authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
     try {
         let Dish = new Dishes({
             ...req.body
@@ -22,11 +22,11 @@ router.post("", authenticate.verifyUser, async (req, res) => {
         res.status(400).send(error);
     }
 })
-router.put("", authenticate.verifyUser, async (req, res) => {
+router.put("", authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /dishes');
 })
-router.delete("", authenticate.verifyUser, async (req, res) => {
+router.delete("", authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
     try {
         let dishes = await Dishes.remove({})
         res.status(200).send(dishes);
@@ -43,11 +43,11 @@ router.get("/:dishId", async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.post('/:dishId', authenticate.verifyUser, async (req,res) => {
+router.post('/:dishId', authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
     res.statusCode = 403;
     res.end("Post is not supported with "+req.params.dishId);
 })
-router.put('/:dishId', authenticate.verifyUser, async (req,res) => {
+router.put('/:dishId', authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
     try {
         let Dish = await Dishes.findByIdAndUpdate(req.params.dishId, {
             $set: req.body
@@ -57,7 +57,7 @@ router.put('/:dishId', authenticate.verifyUser, async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.delete('/:dishId', authenticate.verifyUser, async (req,res) => {
+router.delete('/:dishId', authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
     try {
         let Dish = await Dishes.findByIdAndRemove(req.params.dishId);
         res.status(200).send(Dish);
@@ -92,11 +92,15 @@ router.post('/:dishId/comments', authenticate.verifyUser, async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.put('/:dishId/comments/:commentId', authenticate.verifyUser, async (req,res) => {
+router.put('/:dishId/comments/:commentId', authenticate.verifyUser, async (req,res, next) => {
     try {
         let Dish = await Dishes.findById(req.params.dishId);
         if(!Dish) {
             return res.status(404).send({ "error": "Dish Not Found" })
+        }
+        let comment = Dish.comments.find( comment => comment._id == req.params.commentId );
+        if(comment.author.toString() !== req.user._id.toString()) {
+            return res.status(403).send({ "error": "You are not authorised to perform this action"});
         }
         Dish.comments = Dish.comments.map( comment => {
             if(comment._id == req.params.commentId) {
@@ -118,6 +122,10 @@ router.delete('/:dishId/comments/:commentId', authenticate.verifyUser, async (re
         if(!Dish) {
             return res.status(404).send({ "error": "Dish Not Found" })
         }
+        let comment = Dish.comments.find( comment => comment._id == req.params.commentId );
+        if(comment.author.toString() !== req.user._id.toString()) {
+            return res.status(403).send({ "error": "You are not authorised to perform this action"});
+        }
         Dish.comments = Dish.comments.filter( comment => comment._id != req.params.commentId);
         await Dish.save();
         await Dish.populate('comments.author');
@@ -126,5 +134,15 @@ router.delete('/:dishId/comments/:commentId', authenticate.verifyUser, async (re
         res.status(400).send(error);    
     }
 });
+router.delete('/:dishId/comments/', authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
+    try {
+        let Dish = await Dishes.findById(req.params.dishId);
+        Dish.comments = [];
+        await Dish.save();
+        res.status(200).send(Dish);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+})
 
 module.exports = router;
