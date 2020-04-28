@@ -14,6 +14,7 @@ var usersRouter = require('./routes/users');
 var leaderRouter = require('./routes/LeadersRouter');
 var dishRouter = require('./routes/DishRouter');
 var promotionRouter = require('./routes/PromotionRouter');
+var UploadRouter = require('./routes/UploadRouter');
 const passport = require('passport');
 
 // const Dishes = require('../node-mongoose/models/dishes');
@@ -32,7 +33,13 @@ try {
 
 
 var app = express();
-
+app.all('*', (req,res,next) => {
+  if(req.secure) {
+    return next();
+  } else {
+    res.redirect(307, "https://" + req.hostname + ':' + app.get('secPort') + req.url);
+  }
+})
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -151,6 +158,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/dishes', dishRouter);
 app.use('/promotions', promotionRouter);
 app.use('/leaders', leaderRouter);
+app.use('/imageUpload', UploadRouter);
 
 // catch 404 and forward to error handler 
 app.use(function(req, res, next) {

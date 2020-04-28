@@ -1,0 +1,22 @@
+1) What is Symmetric Key Cryptography
+    -Shared secret key between the two parties
+    Flow
+        Sender->send(message + Secret Key) 
+            ----> Encrypted Message (Malicious Third party cann't decrypt) ---->
+        Receiver->receive(message + Secret Key)
+
+2) Public Key Cryptography
+    -Asymmetric Encryption
+        - Public key that can be widely distributed
+        - Private key that is only known to the Receiver
+        Flow
+            Sender(Message + Public Key)
+                ----> Encrypted Message (Malicious Third party cann't decrypt) ---->
+            Receiver(Message + Private key)
+
+Adding HTTPS
+1) go to bin folder
+2) write following commands
+    openssl genrsa 1024 > private.key
+    openssl req -new -key private.key -out cert.csr
+    openssl x509 -req -in cert.csr -signkey private.key -out certificate.pem
