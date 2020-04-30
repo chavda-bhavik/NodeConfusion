@@ -2,8 +2,12 @@ const express = require("express");
 const Dishes = require("../models/dishes");
 const router = express.Router();
 const authenticate = require('../authenticate');
+const cors = require('./cors');
 
-router.get("", async (req,res) => {
+router
+.route("/")
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
+.get(cors.cors, async (req,res) => {
     try {
         dishes = await Dishes.find({}).populate('comments.author')
         res.status(200).send(dishes);
@@ -11,7 +15,7 @@ router.get("", async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.post("", authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
     try {
         let Dish = new Dishes({
             ...req.body
@@ -22,11 +26,11 @@ router.post("", authenticate.verifyUser, authenticate.verifyAdmin, async (req, r
         res.status(400).send(error);
     }
 })
-router.put("", authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /dishes');
 })
-router.delete("", authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
     try {
         let dishes = await Dishes.remove({})
         res.status(200).send(dishes);
