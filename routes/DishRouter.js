@@ -9,7 +9,7 @@ router
 .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
 .get(cors.cors, async (req,res) => {
     try {
-        dishes = await Dishes.find({}).populate('comments.author')
+        dishes = await Dishes.find(req.query).populate('comments.author')
         res.status(200).send(dishes);
     } catch (error) {
         res.status(400).send(error);
@@ -39,7 +39,9 @@ router
     }
 })
 
-router.get("/:dishId", async (req,res) => {
+router.route("/:dishId")
+.options(cors.corsWithOptions, (req,res) => { res.sendStatus(200); })
+.get(cors.cors, async (req,res) => {
     try {
         let Dish = await Dishes.findById(req.params.dishId).populate('comments.author');
         res.status(200).send(Dish);
@@ -47,11 +49,11 @@ router.get("/:dishId", async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.post('/:dishId', authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
     res.statusCode = 403;
     res.end("Post is not supported with "+req.params.dishId);
 })
-router.put('/:dishId', authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
     try {
         let Dish = await Dishes.findByIdAndUpdate(req.params.dishId, {
             $set: req.body
@@ -61,7 +63,7 @@ router.put('/:dishId', authenticate.verifyUser, authenticate.verifyAdmin, async 
         res.status(400).send(error);
     }
 })
-router.delete('/:dishId', authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
     try {
         let Dish = await Dishes.findByIdAndRemove(req.params.dishId);
         res.status(200).send(Dish);
@@ -70,7 +72,9 @@ router.delete('/:dishId', authenticate.verifyUser, authenticate.verifyAdmin, asy
     }
 });
 
-router.get("/:dishId/comments", async (req,res) => {
+router.route("/:dishId/comments")
+.options(cors.corsWithOptions, (req,res) => { res.sendStatus(200); })
+.get(cors.cors, async (req,res) => {
     try {
         let Dish = await Dishes.findById(req.params.dishId).populate('comments.author');
         if(!Dish) {
@@ -81,7 +85,7 @@ router.get("/:dishId/comments", async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.post('/:dishId/comments', authenticate.verifyUser, async (req,res) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, async (req,res) => {
     try {
         let Dish = await Dishes.findById(req.params.dishId);
         if(!Dish) {
@@ -96,7 +100,20 @@ router.post('/:dishId/comments', authenticate.verifyUser, async (req,res) => {
         res.status(400).send(error);
     }
 })
-router.put('/:dishId/comments/:commentId', authenticate.verifyUser, async (req,res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
+    try {
+        let Dish = await Dishes.findById(req.params.dishId);
+        Dish.comments = [];
+        await Dish.save();
+        res.status(200).send(Dish);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+})
+
+router.route("/:dishId/comments/:commentId")
+.options(cors.corsWithOptions, (req,res) => { res.sendStatus(200); })
+.put(cors.corsWithOptions, authenticate.verifyUser, async (req,res, next) => {
     try {
         let Dish = await Dishes.findById(req.params.dishId);
         if(!Dish) {
@@ -120,7 +137,7 @@ router.put('/:dishId/comments/:commentId', authenticate.verifyUser, async (req,r
         res.status(400).send(error);
     }
 })
-router.delete('/:dishId/comments/:commentId', authenticate.verifyUser, async (req,res) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, async (req,res) => {
     try {
         let Dish = await Dishes.findById(req.params.dishId);
         if(!Dish) {
@@ -138,15 +155,5 @@ router.delete('/:dishId/comments/:commentId', authenticate.verifyUser, async (re
         res.status(400).send(error);    
     }
 });
-router.delete('/:dishId/comments/', authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
-    try {
-        let Dish = await Dishes.findById(req.params.dishId);
-        Dish.comments = [];
-        await Dish.save();
-        res.status(200).send(Dish);
-    } catch (error) {
-        res.status(400).send(error);
-    }
-})
 
 module.exports = router;

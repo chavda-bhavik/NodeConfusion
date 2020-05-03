@@ -2,21 +2,25 @@ const express = require("express");
 const router = express.Router();
 const Promotion = require('./../models/Promotion');
 const authenticate = require('../authenticate');
+const cors = require("./cors");
 
 // router.all(async (req,res,next) => {
 //     res.statusCode = 200;
 //     res.setHeader('Content-Type', 'text/plain');
 //     next();
 // })
-router.get("", async (req,res) => {
+
+router.route("/")
+.options(cors.corsWithOptions, (req,res) => { res.sendStatus(200); })
+.get(cors.cors, async (req,res) => {
     try {
-        let promotions = await Promotion.find({});
+        let promotions = await Promotion.find(req.query);
         res.status(200).send(promotions);
     } catch (error) {
         res.status(400).send(error);
     }
 })
-router.post("", authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, async (req, res) => {
     try {
         let promo = new Promotion({
             ...req.body
@@ -27,6 +31,7 @@ router.post("", authenticate.verifyUser, authenticate.verifyAdmin, async (req, r
         res.status(400).send(error);
     }
 })
+
 // router.put("", async (req, res, next) => {
 //     res.statusCode = 403;
 //     res.end('PUT operation not supported on /promotions');
@@ -35,7 +40,9 @@ router.post("", authenticate.verifyUser, authenticate.verifyAdmin, async (req, r
 //     res.end('Deleting all promotions');
 // })
 
-router.get("/:promotionId", async (req,res) => {
+router.route("/:promotionId")
+.options(cors.corsWithOptions, (req,res) => { res.sendStatus(200); })
+.get(cors.cors, async (req,res) => {
     try {
         let promo = await Promotion.findById(req.params.promotionId);
         if(!promo) {
@@ -46,11 +53,11 @@ router.get("/:promotionId", async (req,res) => {
         res.status(400).send(error);
     }
 })
-// router.post('/:promotionId', async (req,res) => {
-//     res.statusCode = 403;
-//     res.end("Post is not supported with "+req.params.promotionId);
-// })
-router.put('/:promotionId', authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
+.post(cors.corsWithOptions, async (req,res) => {
+    res.statusCode = 403;
+    res.end("Post is not supported with "+req.params.promotionId);
+})
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
     try {
         let promo = await Promotion.findByIdAndUpdate(req.params.promotionId, {
             $set: req.body
@@ -63,7 +70,7 @@ router.put('/:promotionId', authenticate.verifyUser, authenticate.verifyAdmin, a
         res.status(400).send(error);
     }
 })
-router.delete('/:promotionId', authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, async (req,res) => {
     try {
         let promo = await Promotion.findByIdAndRemove(req.params.promotionId);
         if(!promo) {
